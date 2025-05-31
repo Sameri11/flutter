@@ -41,6 +41,26 @@ void main() {
     }
 
     final Directory exampleAppDir = tempDir.childDirectory(testName).childDirectory('example');
+    final String buildGradleContents =
+        exampleAppDir.childFile('android/app/build.gradle.kts').readAsStringSync();
+
+    final String updatedBuildGradleContents = buildGradleContents.replaceFirstMapped(
+      RegExp(r'(buildTypes\s*\{[^}]*)\}', dotAll: true),
+      (Match match) {
+        final String buildTypesContent = match.group(1)!;
+        const String profileBuildType = '''
+
+                getByName("profile") {
+                    applicationIdSuffix = ".profile"
+                    signingConfig = signingConfigs.getByName("debug")
+                }''';
+        return '$buildTypesContent$profileBuildType\n    }';
+      },
+    );
+
+    exampleAppDir
+        .childFile('android/app/build.gradle.kts')
+        .writeAsStringSync(updatedBuildGradleContents);
 
     result = processManager.runSync(<String>[
       flutterBin,

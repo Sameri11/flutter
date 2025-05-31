@@ -5,6 +5,7 @@
 package com.flutter.gradle.plugins
 
 import androidx.annotation.VisibleForTesting
+import com.android.build.gradle.LibraryExtension
 import com.android.builder.model.BuildType
 import com.flutter.gradle.FlutterExtension
 import com.flutter.gradle.FlutterPluginUtils
@@ -185,7 +186,17 @@ class PluginHandler(
 
             // Copy build types from the app to the plugin.
             // This allows to build apps with plugins and custom build types or flavors.
-            getAndroidExtension(pluginProject).buildTypes.addAll(getAndroidExtension(project).buildTypes)
+            // getAndroidExtension(pluginProject).buildTypes.addAll(getAndroidExtension(project).buildTypes)
+           val buildTypes = getAndroidExtension(pluginProject).buildTypes
+
+           if (buildTypes.findByName(buildType.name) == null) {
+               buildTypes.create(
+                   buildType.name
+               ) {
+                   initWith(buildType)
+                   applicationIdSuffix = null
+               }
+           }
 
             // The embedding is API dependency of the plugin, so the AGP is able to desugar
             // default method implementations when the interface is implemented by a plugin.
